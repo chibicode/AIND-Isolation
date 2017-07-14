@@ -170,6 +170,36 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
+    def __min_value(self, game, depth):
+        # Timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # if TERMINAL-TEST(state) then return UTILITY(state)
+        if depth == 0:
+            return self.score(game, self)
+        value = float('inf')  # large number
+        # for each a in ACTIONS(state) do
+        for move in game.get_legal_moves():
+            # v <- MAX(v, MIN-VALUE(RESULT(state, a)))
+            value = min(value,
+                        self.__max_value(game.forecast_move(move), depth - 1))
+        return value
+
+    def __max_value(self, game, depth):
+        # Timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # if TERMINAL-TEST(state) then return UTILITY(state)
+        if depth == 0:
+            return self.score(game, self)
+        value = float('-inf')  # small number
+        # for each a in ACTIONS(state) do
+        for move in game.get_legal_moves():
+            # v <- MIN(v, MAX-VALUE(RESULT(state, a)))
+            value = max(value,
+                        self.__min_value(game.forecast_move(move), depth - 1))
+        return value
+
     def minimax(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
@@ -212,8 +242,16 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # arg max a from ACTIONS(s) MIN-VALUE(RESULT(state, a))
+        max_value_so_far = float('-inf')
+        final_move = (-1, -1)
+        for move in game.get_legal_moves():
+            move_value = self.__min_value(game.forecast_move(move), depth - 1)
+            if move_value > max_value_so_far:
+                final_move = move
+                max_value_so_far = move_value
+
+        return final_move
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -254,8 +292,65 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            depth = 1
+            while True:
+                # The try/except block will automatically catch the exception
+                # raised when the timer is about to expire.
+                best_move = self.alphabeta(game, depth)
+                depth += 1
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
+
+    def __min_value(self, game, depth, alpha=float("-inf"), beta=float("inf")):
+        # Timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # if TERMINAL-TEST(state) then return UTILITY(state)
+        if depth == 0:
+            return self.score(game, self)
+        value = float('inf')  # large number
+        # for each a in ACTIONS(state) do
+        for move in game.get_legal_moves():
+            # v <- MAX(v, MIN-VALUE(RESULT(state, a)), alpha, beta)
+            value = min(value,
+                        self.__max_value(game.forecast_move(move), depth - 1,
+                                         alpha, beta))
+            # if v <= alpha then return v
+            if value <= alpha:
+                return value
+            # beta <- MIN(beta, v)
+            beta = min(value, beta)
+        return value
+
+    def __max_value(self, game, depth, alpha=float("-inf"), beta=float("inf")):
+        # Timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # if TERMINAL-TEST(state) then return UTILITY(state)
+        if depth == 0:
+            return self.score(game, self)
+        value = float('-inf')  # small number
+        # for each a in ACTIONS(state) do
+        for move in game.get_legal_moves():
+            # v <- MIN(v, MAX-VALUE(RESULT(state, a)), alpha, beta)
+            value = max(value,
+                        self.__min_value(game.forecast_move(move), depth - 1,
+                                         alpha, beta))
+            # if v >= beta then return v
+            if value >= beta:
+                return value
+            # alpha <- MAX(alpha, v)
+            alpha = max(value, alpha)
+        return value
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -305,5 +400,17 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # arg max a from ACTIONS(s) MIN-VALUE(RESULT(state, a))
+        max_value_so_far = float('-inf')
+        final_move = (-1, -1)
+        for move in game.get_legal_moves():
+            move_value = self.__min_value(game.forecast_move(move),
+                                          depth - 1,
+                                          alpha, beta)
+            if move_value > max_value_so_far:
+                final_move = move
+                max_value_so_far = move_value
+            # Must keep updating alpha
+            alpha = max(max_value_so_far, alpha)
+
+        return final_move
