@@ -34,7 +34,9 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+
+    # Use improved_score, and try to avoid positions adjacent to
+    # the walls later in the game.
     raise NotImplementedError
 
 
@@ -60,7 +62,9 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+
+    # Use improved_score, but later in the game, favor a position which
+    # reduces the # of positions for the opponent.
     raise NotImplementedError
 
 
@@ -86,7 +90,9 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+
+    # Use improved_score, but try to favor a position which blocks
+    # one of the opponent's moves.
     raise NotImplementedError
 
 
