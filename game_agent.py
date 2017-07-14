@@ -37,7 +37,20 @@ def custom_score(game, player):
 
     # Use improved_score, and try to avoid positions adjacent to
     # the walls later in the game.
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    percent_completed = float(game.move_count) / (game.width * game.height)
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
+    square_distance = float((h - y)**2 + (w - x)**2)
+
+    return float(own_moves - opp_moves - percent_completed * square_distance)
 
 
 def custom_score_2(game, player):
@@ -63,9 +76,20 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # Use improved_score, but later in the game, favor a position which
-    # reduces the # of positions for the opponent.
-    raise NotImplementedError
+    # Use improved_score, but later in the game, increasingly favor a position
+    # which reduces the # of positions for the opponent.
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    percent_completed = float(game.move_count) / (game.width * game.height)
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    return float(own_moves * (1 - percent_completed)
+                 - opp_moves * percent_completed)
 
 
 def custom_score_3(game, player):
@@ -93,7 +117,28 @@ def custom_score_3(game, player):
 
     # Use improved_score, but try to favor a position which blocks
     # one of the opponent's moves.
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    player_location_y, player_location_x =\
+        game.get_player_location(player)
+    opponent_location_y, opponent_location_x =\
+        game.get_player_location(game.get_opponent(player))
+
+    bias = 0
+    if (player_location_y - opponent_location_y,
+        player_location_x - opponent_location_x) in\
+        [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+         (1, -2), (1, 2), (2, -1), (2, 1)]:
+        bias += 1
+
+    return float(own_moves - opp_moves + bias)
 
 
 class IsolationPlayer:
