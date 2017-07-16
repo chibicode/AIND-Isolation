@@ -76,7 +76,7 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # Use improved_score, but later in the game, increasingly favor a position
+    # Use improved_score, but later in the game, decreasingly favor a position
     # which reduces the # of positions for the opponent.
     if game.is_loser(player):
         return float("-inf")
@@ -88,8 +88,8 @@ def custom_score_2(game, player):
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    return float(own_moves * (1 - percent_completed)
-                 - opp_moves * percent_completed)
+    return float(own_moves * percent_completed
+                 - opp_moves * (1 - percent_completed))
 
 
 def custom_score_3(game, player):
@@ -131,12 +131,13 @@ def custom_score_3(game, player):
     opponent_location_y, opponent_location_x =\
         game.get_player_location(game.get_opponent(player))
 
+    # Increase score if you're blocking one of the opponent's possible moves
     bias = 0
     if (player_location_y - opponent_location_y,
         player_location_x - opponent_location_x) in\
         [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
          (1, -2), (1, 2), (2, -1), (2, 1)]:
-        bias += 1
+        bias += 2
 
     return float(own_moves - opp_moves + bias)
 
